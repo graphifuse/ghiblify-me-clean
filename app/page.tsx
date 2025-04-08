@@ -1,61 +1,77 @@
-'use client';
+// app/page.tsx
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
+import emailjs from "emailjs-com";
 
-export default function HomePage() {
-  const [formData, setFormData] = useState({
-    height: '',
-    weight: '',
-    chest: '',
-    waist: '',
-    hips: '',
-  });
+export default function Home() {
+  const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Submitted data:', formData);
-    alert('Form submitted! 🎨 (Plug in your EmailJS or image logic)');
+    setLoading(true);
+
+    const form = new FormData(e.target as HTMLFormElement);
+    const email = form.get("email") as string;
+    const name = form.get("name") as string;
+
+    try {
+      const replicateRes = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: `Ghibli-style portrait of ${name}` }),
+      });
+
+      const { imageUrl } = await replicateRes.json();
+
+      await emailjs.send(
+        "your_service_id",
+        "your_template_id",
+        {
+          to_email: email,
+          user_name: name,
+          image_url: imageUrl,
+        },
+        "your_public_key"
+      );
+
+      alert("Your Ghibli-style portrait has been emailed! ✨");
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-pink-100 via-blue-100 to-white flex flex-col items-center justify-center px-6 py-12">
-      <section className="text-center max-w-2xl mb-12">
-        <h1 className="text-5xl font-extrabold text-blue-800 mb-4">✨ Ghiblify-me ✨</h1>
-        <p className="text-lg text-gray-700">
-          Turn your body measurements into a magical Studio Ghibli-style caricature. Enter your measurements and let the transformation begin!
-        </p>
-      </section>
+    <main className="p-8 max-w-xl mx-auto">
+      <h1 className="text-4xl font-bold mb-4">Ghiblify-me ✨</h1>
+      <p className="mb-6">Turn your measurements into a custom Ghibli-style portrait.</p>
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md space-y-4"
-      >
-        {['height', 'weight', 'chest', 'waist', 'hips'].map((field) => (
-          <div key={field}>
-            <label className="block mb-1 capitalize text-gray-700" htmlFor={field}>
-              {field} (cm)
-            </label>
-            <input
-              id={field}
-              name={field}
-              type="number"
-              value={(formData as any)[field]}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-        ))}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <input
+          type="text"
+          name="name"
+          placeholder="Your Name"
+          className="border p-2 rounded"
+          required
+        />
+        <input
+          type="email"
+          name="email"
+          placeholder="Your Email"
+          className="border p-2 rounded"
+          required
+        />
+        {/* Add other measurement fields as needed */}
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-xl hover:bg-blue-700 transition"
+          className="bg-blue-500 text-white p-2 rounded disabled:opacity-50"
+          disabled={loading}
         >
-          Generate my Ghibli character ✨
+          {loading ? "Generating..." : "Generate & Send Image"}
         </button>
       </form>
     </main>
