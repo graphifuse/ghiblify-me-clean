@@ -49,7 +49,9 @@ export default function Home() {
   return (
     <main className="flex flex-col items-center justify-center min-h-screen p-4">
       <h1 className="text-4xl font-bold mb-4">Ghiblify-me ✨</h1>
-      <p className="mb-6 text-lg text-gray-600">Enter your details below to receive a custom Ghibli-style image!</p>
+      <p className="mb-6 text-lg text-gray-600">
+        Enter your details below to receive a custom Ghibli-style image!
+      </p>
 
       <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
         <input
