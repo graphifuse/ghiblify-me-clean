@@ -1,79 +1,115 @@
 // app/page.tsx
-"use client";
+'use client';
 
-import { useState } from "react";
-import emailjs from "emailjs-com";
+import { useState } from 'react';
+import emailjs from 'emailjs-com';
+import axios from 'axios';
 
 export default function Home() {
+  const [formData, setFormData] = useState({
+    height: '',
+    weight: '',
+    gender: '',
+    email: '',
+  });
   const [loading, setLoading] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const form = new FormData(e.target as HTMLFormElement);
-    const email = form.get("email") as string;
-    const name = form.get("name") as string;
-
     try {
-      const replicateRes = await fetch("/api/generate-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: `Ghibli-style portrait of ${name}` }),
-      });
+      // 1. Generate image from Replicate
+      const replicateResponse = await axios.post('/api/generate', formData);
+      const image = replicateResponse.data.image;
+      setImageUrl(image);
 
-      const { imageUrl } = await replicateRes.json();
-
+      // 2. Send email via EmailJS
       await emailjs.send(
-        "your_service_id",
-        "your_template_id",
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
         {
-          to_email: email,
-          user_name: name,
-          image_url: imageUrl,
+          to_email: formData.email,
+          image_url: image,
         },
-        "your_public_key"
+        process.env.NEXT_PUBLIC_EMAILJS_USER_ID
       );
 
-      alert("Your Ghibli-style portrait has been emailed! ✨");
+      alert('Ghibli-style image emailed to you! ✨');
     } catch (err) {
       console.error(err);
-      alert("Something went wrong. Please try again.");
+      alert('Something went wrong 😢');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="p-8 max-w-xl mx-auto">
+    <main className="flex flex-col items-center justify-center min-h-screen p-4">
       <h1 className="text-4xl font-bold mb-4">Ghiblify-me ✨</h1>
-      <p className="mb-6">Turn your measurements into a custom Ghibli-style portrait.</p>
+      <p className="mb-6 text-lg text-gray-600">Enter your details below to receive a custom Ghibli-style image!</p>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          type="text"
-          name="name"
-          placeholder="Your Name"
-          className="border p-2 rounded"
-          required
-        />
+      <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
         <input
           type="email"
           name="email"
           placeholder="Your Email"
-          className="border p-2 rounded"
           required
+          value={formData.email}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
         />
-        {/* Add other measurement fields as needed */}
+        <input
+          type="text"
+          name="height"
+          placeholder="Height (e.g., 5'9")"
+          required
+          value={formData.height}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+        />
+        <input
+          type="text"
+          name="weight"
+          placeholder="Weight (e.g., 150 lbs)"
+          required
+          value={formData.weight}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+        />
+        <select
+          name="gender"
+          required
+          value={formData.gender}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+        >
+          <option value="">Select Gender</option>
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+          <option value="nonbinary">Non-binary</option>
+        </select>
 
         <button
           type="submit"
-          className="bg-blue-500 text-white p-2 rounded disabled:opacity-50"
           disabled={loading}
+          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
         >
-          {loading ? "Generating..." : "Generate & Send Image"}
+          {loading ? 'Generating...' : 'Ghiblify Me'}
         </button>
       </form>
+
+      {imageUrl && (
+        <div className="mt-6">
+          <h2 className="text-xl font-semibold mb-2">Your Ghibli Image:</h2>
+          <img src={imageUrl} alt="Generated Ghibli Style" className="rounded shadow-md" />
+        </div>
+      )}
     </main>
   );
 }
