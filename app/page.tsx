@@ -1,8 +1,7 @@
-// app/page.tsx
 'use client';
 
 import { useState } from 'react';
-import emailjs from 'emailjs-com';
+import emailjs from '@emailjs/browser';
 import axios from 'axios';
 
 export default function Home() {
@@ -24,12 +23,10 @@ export default function Home() {
     setLoading(true);
 
     try {
-      // 1. Generate image from Replicate
       const replicateResponse = await axios.post('/api/generate', formData);
       const image = replicateResponse.data.image;
       setImageUrl(image);
 
-      // 2. Send email via EmailJS
       await emailjs.send(
         process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
         process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
@@ -37,7 +34,7 @@ export default function Home() {
           to_email: formData.email,
           image_url: image,
         },
-        process.env.NEXT_PUBLIC_EMAILJS_USER_ID
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
       );
 
       alert('Ghibli-style image emailed to you! ✨');
@@ -67,7 +64,7 @@ export default function Home() {
         <input
           type="text"
           name="height"
-          placeholder="Height (e.g., 5'9")"
+          placeholder="Height (e.g., 5'9\")"
           required
           value={formData.height}
           onChange={handleChange}
