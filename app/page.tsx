@@ -1,78 +1,63 @@
-// app/page.tsx
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 
-export default function Home() {
-  const [form, setForm] = useState({
+export default function HomePage() {
+  const [formData, setFormData] = useState({
     height: '',
     weight: '',
-    age: '',
-    gender: '',
+    chest: '',
+    waist: '',
+    hips: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
-    // placeholder: integrate with EmailJS or API call
-    console.log('Form submitted:', form);
-    alert('Your Ghibli-style caricature is on the way!');
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Submitted data:', formData);
+    alert('Form submitted! 🎨 (Plug in your EmailJS or image logic)');
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-emerald-100 flex flex-col items-center justify-center px-4 py-10">
-      <div className="text-center max-w-2xl">
-        <h1 className="text-4xl font-bold mb-4 text-emerald-700">✨ Ghiblify-me ✨</h1>
-        <p className="text-lg text-gray-700 mb-6">
-          Transform yourself into a whimsical Ghibli-style caricature! Just enter your body measurements below and let the magic begin.
+    <main className="min-h-screen bg-gradient-to-br from-pink-100 via-blue-100 to-white flex flex-col items-center justify-center px-6 py-12">
+      <section className="text-center max-w-2xl mb-12">
+        <h1 className="text-5xl font-extrabold text-blue-800 mb-4">✨ Ghiblify-me ✨</h1>
+        <p className="text-lg text-gray-700">
+          Turn your body measurements into a magical Studio Ghibli-style caricature. Enter your measurements and let the transformation begin!
         </p>
-      </div>
+      </section>
 
-      <div className="bg-white shadow-xl rounded-2xl p-6 w-full max-w-md space-y-4">
-        <input
-          type="text"
-          name="height"
-          placeholder="Height (cm)"
-          value={form.height}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg p-2"
-        />
-        <input
-          type="text"
-          name="weight"
-          placeholder="Weight (kg)"
-          value={form.weight}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg p-2"
-        />
-        <input
-          type="number"
-          name="age"
-          placeholder="Age"
-          value={form.age}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg p-2"
-        />
-        <select
-          name="gender"
-          value={form.gender}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg p-2"
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md space-y-4"
+      >
+        {['height', 'weight', 'chest', 'waist', 'hips'].map((field) => (
+          <div key={field}>
+            <label className="block mb-1 capitalize text-gray-700" htmlFor={field}>
+              {field} (cm)
+            </label>
+            <input
+              id={field}
+              name={field}
+              type="number"
+              value={(formData as any)[field]}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+        ))}
+
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-xl hover:bg-blue-700 transition"
         >
-          <option value="">Select Gender</option>
-          <option value="female">Female</option>
-          <option value="male">Male</option>
-          <option value="nonbinary">Non-binary</option>
-          <option value="prefer_not_say">Prefer not to say</option>
-        </select>
-
-        <Button className="w-full" onClick={handleSubmit}>
-          Generate My Ghibli Caricature 🎨
-        </Button>
-      </div>
+          Generate my Ghibli character ✨
+        </button>
+      </form>
     </main>
   );
 }
